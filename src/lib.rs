@@ -47,8 +47,21 @@ macro_rules! hashmap {
     (@single $($x:tt)*) => (());
     (@count $($rest:expr),*) => (<[()]>::len(&[$(hashmap!(@single $rest)),*]));
 
-    ($($key:expr => $value:expr,)+) => { hashmap!($($key => $value),+) };
-    ($($key:expr => $value:expr),*) => {
+    (@r [$($ks:expr => $vs:expr,)*] $k0:expr => $v0:expr, $k1:expr => $v1:expr, $k2:expr => $v2:expr, $k3:expr => $v3:expr, $k4:expr => $v4:expr, $k5:expr => $v5:expr, $k6:expr => $v6:expr, $k7:expr => $v7:expr, $($xs:tt)*) => {
+        {
+            match (($k0, $v0), ($k1, $v1), ($k2, $v2), ($k3, $v3), ($k4, $v4), ($k5, $v5), ($k6, $v6), ($k7, $v7),) {
+                ((k0, v0), (k1, v1), (k2, v2), (k3, v3), (k4, v4), (k5, v5), (k6, v6), (k7, v7),) => hashmap!(@r [$($ks => $vs,)* k0 => v0, k1 => v1, k2 => v2, k3 => v3, k4 => v4, k5 => v5, k6 => v6, k7 => v7,] $($xs)*)
+            }
+        }
+    };
+    (@r [$($ks:expr => $vs:expr,)*] $x:expr => $v:expr, $($xs:tt)*) => {
+        {
+            match ($x, $v) {
+                (k, v) => hashmap!(@r [$($ks => $vs,)* k => v,] $($xs)*)
+            }
+        }
+    };
+    (@r [$($key:expr => $value:expr,)*]) => {
         {
             let _cap = hashmap!(@count $($key),*);
             let mut _map = ::std::collections::HashMap::with_capacity(_cap);
@@ -58,6 +71,9 @@ macro_rules! hashmap {
             _map
         }
     };
+
+    ($($key:expr => $value:expr,)+) => { hashmap!($($key => $value),+) };
+    ($($key:expr => $value:expr),*) => { hashmap!(@r [] $($key => $value,)*) };
 }
 
 /// Create a **HashSet** from a list of elements.
@@ -79,8 +95,21 @@ macro_rules! hashset {
     (@single $($x:tt)*) => (());
     (@count $($rest:expr),*) => (<[()]>::len(&[$(hashset!(@single $rest)),*]));
 
-    ($($key:expr,)+) => { hashset!($($key),+) };
-    ($($key:expr),*) => {
+    (@r [$($ks:expr,)*] $k0:expr, $k1:expr, $k2:expr, $k3:expr, $k4:expr, $k5:expr, $k6:expr, $k7:expr, $($xs:tt)*) => {
+        {
+            match ($k0, $k1, $k2, $k3, $k4, $k5, $k6, $k7,) {
+                (k0, k1, k2, k3, k4, k5, k6, k7,) => hashset!(@r [$($ks,)* k0, k1, k2, k3, k4, k5, k6, k7,] $($xs)*)
+            }
+        }
+    };
+    (@r [$($ks:expr,)*] $k:expr, $($xs:tt)*) => {
+        {
+            match $k {
+                k => hashset!(@r [$($ks,)* k,] $($xs)*)
+            }
+        }
+    };
+    (@r [$($key:expr,)*]) => {
         {
             let _cap = hashset!(@count $($key),*);
             let mut _set = ::std::collections::HashSet::with_capacity(_cap);
@@ -90,6 +119,9 @@ macro_rules! hashset {
             _set
         }
     };
+
+    ($($key:expr,)+) => { hashset!($($key),+) };
+    ($($key:expr),*) => { hashset!(@r [] $($key,)*) };
 }
 
 #[macro_export(local_inner_macros)]
@@ -111,10 +143,21 @@ macro_rules! hashset {
 /// # }
 /// ```
 macro_rules! btreemap {
-    // trailing comma case
-    ($($key:expr => $value:expr,)+) => (btreemap!($($key => $value),+));
-
-    ( $($key:expr => $value:expr),* ) => {
+    (@r [$($ks:expr => $vs:expr,)*] $k0:expr => $v0:expr, $k1:expr => $v1:expr, $k2:expr => $v2:expr, $k3:expr => $v3:expr, $k4:expr => $v4:expr, $k5:expr => $v5:expr, $k6:expr => $v6:expr, $k7:expr => $v7:expr, $($xs:tt)*) => {
+        {
+            match (($k0, $v0), ($k1, $v1), ($k2, $v2), ($k3, $v3), ($k4, $v4), ($k5, $v5), ($k6, $v6), ($k7, $v7),) {
+                ((k0, v0), (k1, v1), (k2, v2), (k3, v3), (k4, v4), (k5, v5), (k6, v6), (k7, v7),) => btreemap!(@r [$($ks => $vs,)* k0 => v0, k1 => v1, k2 => v2, k3 => v3, k4 => v4, k5 => v5, k6 => v6, k7 => v7,] $($xs)*)
+            }
+        }
+    };
+    (@r [$($ks:expr => $vs:expr,)*] $x:expr => $v:expr, $($xs:tt)*) => {
+        {
+            match ($x, $v) {
+                (k, v) => btreemap!(@r [$($ks => $vs,)* k => v,] $($xs)*)
+            }
+        }
+    };
+    (@r [$($key:expr => $value:expr,)*]) => {
         {
             let mut _map = ::std::collections::BTreeMap::new();
             $(
@@ -123,6 +166,9 @@ macro_rules! btreemap {
             _map
         }
     };
+
+    ($($key:expr => $value:expr,)+) => { btreemap!($($key => $value),+) };
+    ($($key:expr => $value:expr),*) => { btreemap!(@r [] $($key => $value,)*) };
 }
 
 #[macro_export(local_inner_macros)]
@@ -141,17 +187,32 @@ macro_rules! btreemap {
 /// # }
 /// ```
 macro_rules! btreeset {
-    ($($key:expr,)+) => (btreeset!($($key),+));
-
-    ( $($key:expr),* ) => {
+    (@r [$($ks:expr,)*] $k0:expr, $k1:expr, $k2:expr, $k3:expr, $k4:expr, $k5:expr, $k6:expr, $k7:expr, $($xs:tt)*) => {
+        {
+            match ($k0, $k1, $k2, $k3, $k4, $k5, $k6, $k7,) {
+                (k0, k1, k2, k3, k4, k5, k6, k7,) => btreeset!(@r [$($ks,)* k0, k1, k2, k3, k4, k5, k6, k7,] $($xs)*)
+            }
+        }
+    };
+    (@r [$($ks:expr,)*] $k:expr, $($xs:tt)*) => {
+        {
+            match $k {
+                k => btreeset!(@r [$($ks,)* k,] $($xs)*)
+            }
+        }
+    };
+    (@r [$($key:expr,)*]) => {
         {
             let mut _set = ::std::collections::BTreeSet::new();
             $(
-                _set.insert($key);
+                let _ = _set.insert($key);
             )*
             _set
         }
     };
+
+    ($($key:expr,)+) => { btreeset!($($key),+) };
+    ($($key:expr),*) => { btreeset!(@r [] $($key,)*) };
 }
 
 /// Identity function. Used as the fallback for conversion.

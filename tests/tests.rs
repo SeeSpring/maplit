@@ -63,3 +63,63 @@ fn hashset() {
     };
     assert_eq!(set.len(), 10);
 }
+
+#[test]
+fn temporaries_lifetime_hashmap() {
+    use std::collections::HashMap;
+    use std::path::Path;
+
+    fn v(_: Vec<&str>) {}
+    fn s(_: HashMap<&str, ()>) {}
+
+    let path = Path::new("/");
+
+    v(vec![path.to_string_lossy().as_ref()]);
+
+    s(hashmap![path.to_string_lossy().as_ref() => ()]);
+}
+
+#[test]
+fn temporaries_lifetime_hashset() {
+    use std::collections::HashSet;
+    use std::path::Path;
+
+    fn v(_: Vec<&str>) {}
+    fn s(_: HashSet<&str>) {}
+
+    let path = Path::new("/");
+
+    v(vec![path.to_string_lossy().as_ref()]);
+
+    s(hashset![path.to_string_lossy().as_ref()]);
+}
+
+#[test]
+fn temporaries_lifetime_btreemap() {
+    use std::collections::BTreeMap;
+    use std::path::Path;
+
+    fn v(_: Vec<&str>) {}
+    fn s(_: BTreeMap<&str, ()>) {}
+
+    let path = Path::new("/");
+
+    v(vec![path.to_string_lossy().as_ref()]);
+
+    s(btreemap![path.to_string_lossy().as_ref() => ()]);
+}
+
+#[test]
+fn temporaries_lifetime_btreeset() {
+    use std::collections::BTreeSet;
+    use std::path::Path;
+
+    fn v(_: Vec<&str>) {}
+    fn s(_: BTreeSet<&str>) {}
+
+    let path = Path::new("/");
+
+    v(vec![path.to_string_lossy().as_ref()]);
+
+    s(btreeset![path.to_string_lossy().as_ref()]);
+}
